@@ -7,6 +7,40 @@ namespace IntegrandoApisConAdo.Repository
 {
     public class ProductoRepository : GenericDB
     {
+        public List<Producto> GetProductos()
+        {
+            string cmdText = "SELECT * FROM Producto";
+            List<Producto> products = new List<Producto>();
+
+            using (SqlConnection sqlConnection = new SqlConnection(ConnectionString))
+            {
+                using (SqlCommand sqlCommand = new SqlCommand(cmdText, sqlConnection))
+                {
+                    sqlConnection.Open();
+
+                    using (SqlDataReader dataReader = sqlCommand.ExecuteReader())
+                    {
+                        if (dataReader.HasRows)
+                        {
+                            while (dataReader.Read())
+                            {
+                                Producto producto = new Producto();
+
+                                producto.Id = Convert.ToInt64(dataReader["Id"]);
+                                producto.Descripciones = dataReader["Descripciones"].ToString();
+                                producto.Costo = Convert.ToDecimal(dataReader["Costo"]);
+                                producto.PrecioVenta = Convert.ToDecimal(dataReader["PrecioVenta"]);
+                                producto.Stock = Convert.ToInt32(dataReader["Stock"]);
+                                producto.IdUsuario = Convert.ToInt64(dataReader["IdUsuario"]);
+
+                                products.Add(producto);
+                            }
+                        }
+                    }
+                }
+            }
+            return products;
+        }
         public int AddProducto(Producto producto)
         {
             int rowsAffected = 0;
@@ -39,7 +73,6 @@ namespace IntegrandoApisConAdo.Repository
                 return -1; // en caso de error 
             }
         }
-
         public int UpdateProducto(Producto producto)
         {
             int rowsAffected = 0;
@@ -104,7 +137,30 @@ namespace IntegrandoApisConAdo.Repository
             {
             }
         }
+        public static void UpdateStockProductoXProductoVendido(long idProducto, int StockVendido)
+        {
+            string cmdText = "UPDATE Producto SET Stock = " +
+                "((SELECT PR.Stock FROM Producto PR WHERE PR.id = @idProducto) + @StockVendido) " +
+                "where id = @idProducto;";
+            try
+            {
+                using (SqlConnection sqlConnection = new SqlConnection(ConnectionString))
+                {
+                    using (SqlCommand sqlCommand = new SqlCommand(cmdText, sqlConnection))
+                    {
+                        sqlConnection.Open();
+                        sqlCommand.Parameters.Add(new SqlParameter("@idProducto", SqlDbType.Int)).Value = idProducto;
 
+                        sqlCommand.Parameters.Add(new SqlParameter("@StockVendido", SqlDbType.BigInt)).Value = StockVendido;
+
+                        sqlCommand.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
         public bool DeleteProducto(int id)
         {
             ProductoVendidoRepository productoVendidoRepository = new ProductoVendidoRepository();
@@ -137,6 +193,5 @@ namespace IntegrandoApisConAdo.Repository
 
             
         }
-
     }
 }

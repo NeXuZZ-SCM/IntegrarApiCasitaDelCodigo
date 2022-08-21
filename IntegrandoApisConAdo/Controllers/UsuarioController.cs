@@ -16,6 +16,21 @@ namespace IntegrandoApisConAdo.Controllers
             _usuarioRepository = new UsuarioRepository();
         }
 
+        // GET api/<UsuarioController>/5
+        [HttpGet("{userName}")]
+        public Usuario Get(string userName)
+        {
+            return _usuarioRepository.GetUsuariosByUserName(userName);
+        }
+
+
+        // POST api/<UsuarioController>
+        [HttpPost]
+        public bool Post([FromBody] Usuario usuario)
+        {
+            return _usuarioRepository.AddUser(usuario);
+        }
+
         // GET: api/<UsuarioController>
         //[HttpGet]
         //public IEnumerable<string> Get()
@@ -35,6 +50,13 @@ namespace IntegrandoApisConAdo.Controllers
         public int Put([FromBody]Usuario usuario)
         {
             return _usuarioRepository.UpdateUser(usuario);
+        }
+
+        // DELETE api/<UsuarioController>/5
+        [HttpDelete("{id}")]
+        public bool Delete(int id)
+        {
+            return _usuarioRepository.DeleteUser(id);
         }
 
     }

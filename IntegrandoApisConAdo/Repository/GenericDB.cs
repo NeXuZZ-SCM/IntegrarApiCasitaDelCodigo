@@ -1,4 +1,5 @@
-﻿namespace IntegrandoApisConAdo.Repository
+﻿
+namespace IntegrandoApisConAdo.Repository
 {
     public class GenericDB
     {

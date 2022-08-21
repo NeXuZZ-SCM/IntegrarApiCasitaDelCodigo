@@ -16,19 +16,12 @@ namespace IntegrandoApisConAdo.Controllers
         {
             _ventaRepository = new VentaRepository();
         }
-        // GET: api/<VentaController>
-        //[HttpGet]
-        //public IEnumerable<string> Get()
-        //{
-        //    return new string[] { "value1", "value2" };
-        //}
-
-        //// GET api/<VentaController>/5
-        //[HttpGet("{id}")]
-        //public string Get(int id)
-        //{
-        //    return "value";
-        //}
+        //GET: api/<VentaController>
+        [HttpGet]
+        public List<VentasYProductos> Get()
+        {
+            return _ventaRepository.GetVentasYProductos();
+        }
 
         // POST api/<VentaController>
         [HttpPost]
@@ -41,5 +34,11 @@ namespace IntegrandoApisConAdo.Controllers
             return false;
         }
 
+        // DELETE api/<VentaController>/5
+        [HttpDelete("{id}")]
+        public bool Delete(int id)
+        {
+            return _ventaRepository.DeleteVenta(id);
+        }
     }
 }

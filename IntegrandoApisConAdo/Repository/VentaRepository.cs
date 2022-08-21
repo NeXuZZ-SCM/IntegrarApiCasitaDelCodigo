@@ -58,7 +58,6 @@ namespace IntegrandoApisConAdo.Repository
 
             return true;
         }
-
         private List<VentaEfectuada> AnalizarProductos(List<Producto> listaProductos, int idVendedor, int idNuevaVenta)
         {
             //necesito id producto 
@@ -92,6 +91,79 @@ namespace IntegrandoApisConAdo.Repository
             }
             return ventaEfectuadas; //si llegamos a este punto SIEMPRE tendremos una lista de productos vendidos ya que controlamos los productos en cero en el lado del controller
         }
+        public List<VentasYProductos> GetVentasYProductos()
+        {
+            string cmdText = "SELECT * FROM Venta";
+            List<VentasYProductos> listaVentasYProductos = new List<VentasYProductos>();
+
+            using (SqlConnection sqlConnection = new SqlConnection(ConnectionString))
+            {
+                using (SqlCommand sqlCommand = new SqlCommand(cmdText, sqlConnection))
+                {
+                    sqlConnection.Open();
+
+                    using (SqlDataReader dataReader = sqlCommand.ExecuteReader())
+                    {
+                        if (dataReader.HasRows)
+                        {
+                            while (dataReader.Read())
+                            {
+                                VentasYProductos ventasYProductos = new VentasYProductos();
+
+                                Venta venta = new Venta();
+                                venta.Id = Convert.ToInt64(dataReader["Id"]);
+                                venta.Comentarios = dataReader["Comentarios"].ToString();
+
+                                ventasYProductos.Venta = venta;
+                                ventasYProductos.ListaProducto = ProductoVendidoRepository.GetProductosVendidosByIdVenta(venta.Id);
+
+                                listaVentasYProductos.Add(ventasYProductos);
+                            }
+                        }
+                    }
+                }
+            }
+            return listaVentasYProductos;
+        }
+        public bool DeleteVenta(int idVenta)
+        {
+            //volamos venta
+            string cmdText = "DELETE FROM Venta WHERE id = @idVenta";
+
+            try
+            {
+                List<ProductoVendido> ListaProductosVendidos = ProductoVendidoRepository.GetProductosVendidosSinDetalleByIdVenta(idVenta);
+                //actualizamos stock productos
+                foreach (var item in ListaProductosVendidos)
+                {
+                    ProductoRepository.UpdateStockProductoXProductoVendido(item.IdProducto, item.Stock);
+                }
+                //volamos productos vendidos
+                ProductoVendidoRepository.DeleteProductoVendidoPorIdVenta(idVenta);
+
+
+
+                using (SqlConnection sqlConnection = new SqlConnection(ConnectionString))
+                {
+                    using (SqlCommand sqlCommand = new SqlCommand(cmdText, sqlConnection))
+                    {
+                        sqlConnection.Open();
+
+                        sqlCommand.Parameters.Add(new SqlParameter("@idVenta", SqlDbType.BigInt)).Value = idVenta;
+
+                        sqlCommand.ExecuteNonQuery();
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false; // en caso de error 
+            }
+
+
+        }
+
     }
 
 }
